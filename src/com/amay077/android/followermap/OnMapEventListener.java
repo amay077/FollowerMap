@@ -1,4 +1,4 @@
-package com.amay077.android;
+package com.amay077.android.followermap;
 
 import com.google.android.maps.MapView;
 

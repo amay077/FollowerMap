@@ -1,8 +1,9 @@
-package com.amay077.android;
+package com.amay077.android.followermap;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import com.amay077.android.followermap.R;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.vividsolutions.jts.index.SpatialIndex;

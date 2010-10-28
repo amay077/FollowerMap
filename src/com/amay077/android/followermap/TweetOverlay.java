@@ -1,4 +1,4 @@
-package com.amay077.android;
+package com.amay077.android.followermap;
 
 import java.util.List;
 import android.graphics.Canvas;

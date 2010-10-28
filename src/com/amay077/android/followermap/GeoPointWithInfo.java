@@ -1,4 +1,4 @@
-package com.amay077.android;
+package com.amay077.android.followermap;
 
 import twitter4j.Tweet;
 import android.graphics.Bitmap;
