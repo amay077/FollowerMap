@@ -37,7 +37,7 @@ public class MainActivity extends MapActivity implements Progressable, TaskFacto
         mapview = (MapView)findViewById(R.id.mapView);
         mapview.setBuiltInZoomControls(true);
 
-        final MyOverlay overlay = new MyOverlay(this);
+        final TweetOverlay overlay = new TweetOverlay(this);
         mapview.getOverlays().add(overlay);
         mapview.getOverlays().add(new GeoHexOverlay());
 

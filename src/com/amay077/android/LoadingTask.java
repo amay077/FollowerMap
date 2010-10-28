@@ -98,9 +98,9 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 	            QueryResult result = twitter.search(query);
 	            List<Tweet> tweets = result.getTweets();
 	            Log.d(this.getClass().toString(), String.valueOf(tweets.size()) + " tweets.");
-	            int i = 0;
+	            int added = 0;
 
-	            /*while (result.getTweets().size() > 0)*/ {
+	            while ((result.getTweets().size() > 0) && (added < 10)) {
 		            for (Tweet tweet : tweets) {
 		            	if (isCancelled()) {
 							return null;
@@ -135,16 +135,15 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 			            				geoP.getLongitudeE6()-1, geoP.getLongitudeE6()+1,
 			            				geoP.getLatitudeE6()-1, geoP.getLatitudeE6()+1),
 			            				geoP);
+			            		added++;
 		        			}
 						}
 						this.addrGeoMap.put(tweet.getLocation(), geoP); // 取得できなかったやつもキャッシュしとく
-						i++;
 					}
 
 		            // 次のページを検索
-		            //query.setPage(result.getPage() + 1);
-		            //result = twitter.search(query);
-
+		            query.setPage(result.getPage() + 1);
+		            result = twitter.search(query);
 				}
 
 	        } catch (Exception e) {
@@ -206,15 +205,15 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
         //Log.d(this.getClass().toString(), tweet.getFromUser() + ":" + tweet.getText());
         GeoLocation loc = tweet.getGeoLocation();
         if (loc != null) {
-            return new GeoPointWithInfo((int)(loc.getLatitude() * 1E6), (int)(loc.getLongitude() * 1E6));
+            return GeoPointWithInfo.MakeWithNoise(loc.getLatitude(), loc.getLongitude());
 		} else {
 			Log.d(this.getClass().toString(), tweet.getFromUser() + ":" + tweet.getLocation());
 			try {
 				String[] buf = tweet.getLocation().split("[:,]");
 				if (buf.length == 2) {
-	                return new GeoPointWithInfo((int)(Double.valueOf(buf[0]) * 1E6), (int)(Double.valueOf(buf[1]) * 1E6));
+	                return GeoPointWithInfo.MakeWithNoise(Double.valueOf(buf[0]), Double.valueOf(buf[1]));
 				} else if (buf.length == 3) {
-	                return new GeoPointWithInfo((int)(Double.valueOf(buf[1]) * 1E6), (int)(Double.valueOf(buf[2]) * 1E6));
+	                return GeoPointWithInfo.MakeWithNoise(Double.valueOf(buf[1]), Double.valueOf(buf[2]));
 				} else {
 					throw new Exception();
 				}
@@ -227,8 +226,7 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 					List<Address> list = geoCoder.getFromLocationName(tweet.getLocation(), 1);
 					for (Address address : list) {
 						Log.d(this.getClass().toString(), address.toString());
-						GeoPointWithInfo geoP = new GeoPointWithInfo((int)(address.getLatitude() * 1E6), (int)(address.getLongitude() * 1E6));
-		                return geoP;
+		                return GeoPointWithInfo.MakeWithNoise(address.getLatitude(), address.getLongitude());
 					}
 				} catch (Exception ignore) {
 					ignore.printStackTrace();
