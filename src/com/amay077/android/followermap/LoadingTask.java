@@ -18,8 +18,10 @@ import twitter4j.QueryResult;
 import twitter4j.Tweet;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
+import jp.co.mapion.android.maps.GeoPoint;
+import jp.co.mapion.android.maps.MapView;
+
+import jp.co.mapion.android.maps.Projection;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.ItemVisitor;
 import com.vividsolutions.jts.index.SpatialIndex;
@@ -68,8 +70,8 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 
 			// twitter
 	        try {
-	        	double halfLongSpan = mapview.getLongitudeSpan() / 2d;
-	        	double halfLatSpan = mapview.getLatitudeSpan() / 2d;
+	        	double halfLongSpan = getLongitudeSpan(mapview) / 2d;
+	        	double halfLatSpan = getLatitudeSpan(mapview) / 2d;
 	        	Envelope envSearch = new Envelope(
 	        			geoCenter.getLongitudeE6() - halfLongSpan, geoCenter.getLongitudeE6() + halfLongSpan,
 	        			geoCenter.getLatitudeE6() - halfLatSpan, geoCenter.getLatitudeE6() + halfLatSpan);
@@ -85,7 +87,7 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 					}
 				});
 
-	        	double radius = (mapview.getLongitudeSpan() / 1E6 / 4) * 111.325d;
+	        	double radius = (getLongitudeSpan(mapview) / 1E6 / 4) * 111.325d;
 	            Query query = new Query();
 	            query.setGeoCode(new GeoLocation(geoCenter.getLatitudeE6() / 1E6, geoCenter.getLongitudeE6() / 1E6),
 	            		radius, Query.KILOMETERS);
@@ -258,6 +260,22 @@ public class LoadingTask extends AsyncTask<Void, Float, List<GeoPointWithInfo>> 
 		}
 
 		return null;
+	}
+
+	private double getLatitudeSpan(MapView mapView) {
+		Projection proj = mapView.getProjection();
+		GeoPoint gpLeftTop = proj.fromPixels(0, 0);
+		GeoPoint gpLeftBottom = proj.fromPixels(0, mapView.getHeight());
+
+		return Math.abs(gpLeftBottom.getLatitudeE6() - gpLeftTop.getLatitudeE6());
+	}
+
+	private double getLongitudeSpan(MapView mapView) {
+		Projection proj = mapView.getProjection();
+		GeoPoint gpLeftTop = proj.fromPixels(0, 0);
+		GeoPoint gpRightTop = proj.fromPixels(mapView.getWidth(), 0);
+
+		return Math.abs(gpRightTop.getLongitudeE6() - gpLeftTop.getLongitudeE6());
 	}
 
 }

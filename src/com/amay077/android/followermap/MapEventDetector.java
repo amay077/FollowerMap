@@ -1,7 +1,7 @@
 package com.amay077.android.followermap;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
+import jp.co.mapion.android.maps.GeoPoint;
+import jp.co.mapion.android.maps.MapView;
 
 /**
  * GoogleMap の MapView には onZoom や onScroll がないので、それの代わりにイベントを発生させるクラス。

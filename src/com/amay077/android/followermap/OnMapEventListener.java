@@ -1,6 +1,6 @@
 package com.amay077.android.followermap;
 
-import com.google.android.maps.MapView;
+import jp.co.mapion.android.maps.MapView;
 
 public interface OnMapEventListener {
 	public abstract void onMapCenterChanged(MapView mapview);

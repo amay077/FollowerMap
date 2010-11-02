@@ -13,10 +13,10 @@ import android.graphics.Shader.TileMode;
 import android.os.AsyncTask.Status;
 import android.util.Log;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.Projection;
+import jp.co.mapion.android.maps.GeoPoint;
+import jp.co.mapion.android.maps.MapView;
+import jp.co.mapion.android.maps.Overlay;
+import jp.co.mapion.android.maps.Projection;
 
 public class TweetOverlay extends Overlay
 	implements OnMapEventListener {
@@ -70,7 +70,7 @@ public class TweetOverlay extends Overlay
 			Point p = new Point();
 
 			for (GeoPointWithInfo geoPoint : taskResult) {
-				 proj.toPixels(geoPoint, p);
+				 proj.toPixels(new GeoPoint(geoPoint.getLatitudeE6(), geoPoint.getLongitudeE6()), p);
 				 if (geoPoint.profileImage == null) {
 					 canvas.drawCircle(p.x, p.y, 10f, fillPaint);
 				 } else {

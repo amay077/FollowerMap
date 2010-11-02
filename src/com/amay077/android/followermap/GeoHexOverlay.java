@@ -13,10 +13,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Paint.Style;
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.Projection;
+import jp.co.mapion.android.maps.GeoPoint;
+import jp.co.mapion.android.maps.MapView;
+import jp.co.mapion.android.maps.Overlay;
+import jp.co.mapion.android.maps.Projection;
 
 /**
  * GeoHex を描画する Overlay
@@ -176,8 +176,24 @@ public class GeoHexOverlay extends Overlay {
 	/** MapView の縦方向のワールドサイズをメートル値で取得します。 */
 	private double getLatitudeSpanInMetre(MapView mapView) {
 
-		float heightInMetre = (float)(mapView.getLatitudeSpan() / 1E6) * 111136f;
+		float heightInMetre = (float)(getLatitudeSpan(mapView) / 1E6) * 111136f;
 		return heightInMetre;
 
+	}
+
+	private double getLatitudeSpan(MapView mapView) {
+		Projection proj = mapView.getProjection();
+		GeoPoint gpLeftTop = proj.fromPixels(0, 0);
+		GeoPoint gpLeftBottom = proj.fromPixels(0, mapView.getHeight());
+
+		return Math.abs(gpLeftBottom.getLatitudeE6() - gpLeftTop.getLatitudeE6());
+	}
+
+	private double getLongitudeSpan(MapView mapView) {
+		Projection proj = mapView.getProjection();
+		GeoPoint gpLeftTop = proj.fromPixels(0, 0);
+		GeoPoint gpRightTop = proj.fromPixels(mapView.getWidth(), 0);
+
+		return Math.abs(gpRightTop.getLongitudeE6() - gpLeftTop.getLongitudeE6());
 	}
 }
