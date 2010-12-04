@@ -18,6 +18,7 @@ import android.hardware.GeomagneticField;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,9 +33,10 @@ public class MainActivity extends MapActivity {
     private MapView mapview = null;
     private MyLocationOverlay myLocOverlay = null;
     private GeoHexOverlay watchHexOverlay = new GeoHexOverlay();
-    private AudioManager mAudio = null;
 
     private Handler handler = new Handler();
+    private AudioManager mAudio = null;
+	private Vibrator mVibrator = null;
 
 	/** Called when the activity is first created. */
     @Override
@@ -50,7 +52,7 @@ public class MainActivity extends MapActivity {
         mapview.getOverlays().add(myLocOverlay);
 
         mAudio = (AudioManager) getSystemService(this.AUDIO_SERVICE);
-}
+        mVibrator  = (Vibrator) getSystemService(VIBRATOR_SERVICE);}
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -111,13 +113,18 @@ public class MainActivity extends MapActivity {
 
 				// 1. 現在位置を取得
 				final GeoPoint point = myLocOverlay.getMyLocation();
-				Log.d("startWatchTimer", String.valueOf(point.getLatitudeE6()));
 
-				handler.post(new Runnable() {
-					public void run() {
-						mapview.getController().animateTo(point);
-					}
-				});
+				Log.d("startWatchTimer", point != null ? String.valueOf(point.getLatitudeE6()) : "point is null");
+
+				if (point == null) {
+					return;
+				}
+
+//				handler.post(new Runnable() {
+//					public void run() {
+//						mapview.getController().animateTo(point);
+//					}
+//				});
 
 				for (String geoHexCode : watchHexOverlay.getSelectedGeoHexCodes().keySet()) {
 
@@ -139,6 +146,9 @@ public class MainActivity extends MapActivity {
 							public void run() {
 								Toast.makeText(MainActivity.this, "found! - GeoHex code : " + currentZone.code, Toast.LENGTH_SHORT).show();
 								mAudio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+								mAudio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+								mVibrator.vibrate(1000);
+
 							}
 						});
 					}
