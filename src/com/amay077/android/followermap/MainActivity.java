@@ -99,6 +99,7 @@ public class MainActivity extends MapActivity {
 	private void startWatchTimer() {
 
 		myLocOverlay.enableMyLocation();
+        myLocOverlay.enableCompass();
 
 		Timer watchTimer = new Timer();
 
@@ -107,9 +108,16 @@ public class MainActivity extends MapActivity {
 			@Override
 			public void run() {
 
+
 				// 1. 現在位置を取得
-				GeoPoint point = myLocOverlay.getMyLocation();
+				final GeoPoint point = myLocOverlay.getMyLocation();
 				Log.d("startWatchTimer", String.valueOf(point.getLatitudeE6()));
+
+				handler.post(new Runnable() {
+					public void run() {
+						mapview.getController().animateTo(point);
+					}
+				});
 
 				for (String geoHexCode : watchHexOverlay.getSelectedGeoHexCodes().keySet()) {
 
