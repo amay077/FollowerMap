@@ -2,29 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-        <Button android:id="@+id/Button01" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="Async Draw"></Button>
-
-
-<Button android:id="@+id/Button02" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cancel"></Button><ProgressBar
-    android:id="@+id/ProgressBar01"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:visibility="invisible"
-    android:indeterminate="false"
-    style="?android:attr/progressBarStyle" >
-</ProgressBar>
-
-</LinearLayout>
+    android:layout_height="fill_parent" >
 
     <com.google.android.maps.MapView
       android:id="@+id/mapView"
-      android:apiKey="0FC6V_VXfeImAUuW5BeHDHb7QiHrEHYCYwomndQ"
+      android:apiKey="0ZXUMl6hWC1_ViF-f_AX2FHO_lGeksMVENsdMVQ"
       android:layout_width="fill_parent"
       android:layout_height="fill_parent"
       android:clickable="true"/>
