@@ -15,7 +15,9 @@ import com.vividsolutions.jts.geom.LinearRing;
 
 import android.graphics.Point;
 import android.hardware.GeomagneticField;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,9 @@ public class MainActivity extends MapActivity {
     private MapView mapview = null;
     private MyLocationOverlay myLocOverlay = null;
     private GeoHexOverlay watchHexOverlay = new GeoHexOverlay();
+    private AudioManager mAudio = null;
+
+    private Handler handler = new Handler();
 
 	/** Called when the activity is first created. */
     @Override
@@ -43,6 +48,8 @@ public class MainActivity extends MapActivity {
         mapview.getOverlays().add(watchHexOverlay);
         myLocOverlay = new MyLocationOverlayEx(this, mapview);
         mapview.getOverlays().add(myLocOverlay);
+
+        mAudio = (AudioManager) getSystemService(this.AUDIO_SERVICE);
 }
 
 	@Override
@@ -111,17 +118,25 @@ public class MainActivity extends MapActivity {
 
 					// 監視する GeoHex と同じレベルで、現在位置の GeoHex を取得
 					// ※同じレベルにすることで Code の一致でエリア内判定をする。
-					GeoHex.Zone currentZone = GeoHex.getZoneByLocation(point.getLatitudeE6() / 1E6,
+					final GeoHex.Zone currentZone = GeoHex.getZoneByLocation(point.getLatitudeE6() / 1E6,
 							point.getLongitudeE6() / 1E6, watchZone.level);
 
-					if (watchZone.code == currentZone.code) {
+					if (watchZone.code.equals(currentZone.code)) {
 						// Notify!
 						// 4. ヒットしたらマナーモードにする
 						Log.d("startWatchTimer", "found! - GeoHex code : " + currentZone.code);
+
+						handler.post(new Runnable() {
+
+							public void run() {
+								Toast.makeText(MainActivity.this, "found! - GeoHex code : " + currentZone.code, Toast.LENGTH_SHORT).show();
+								mAudio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+							}
+						});
 					}
 				}
 			}
-		}, 0, 5000); // ５秒ごと
+		}, 0, 1000); // 1秒ごと
 
 	}
 }
