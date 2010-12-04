@@ -1,7 +1,9 @@
 package com.amay077.android.followermap;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.geohex.GeoHex;
@@ -40,7 +42,7 @@ public class GeoHexOverlay extends Overlay {
 	private Paint selectionPaint = new Paint();
 
 	/** 選択した GeoHex の Code 群 */
-	private Set<String> selectedGeoHexCodes = new HashSet<String>();
+	private Map<String, Point[]> selectedGeoHexCodes = new HashMap<String, Point[]>();
 
 	/** 選択時の GeoHex のレベル(今は GoogleMap の ZoomLV と連動) */
 	private int geoHexLevel;
@@ -60,12 +62,12 @@ public class GeoHexOverlay extends Overlay {
 
 	// setter/getter ----------------------------------------------------------
 	/** 選択された GeoHex のコード群 を設定します。 */
-	public void setSelectedGeoHexCodes(Set<String> selectedGeoHexCodes) {
+	public void setSelectedGeoHexCodes(Map<String, Point[]> selectedGeoHexCodes) {
 		this.selectedGeoHexCodes = selectedGeoHexCodes;
 	}
 
 	/** 選択された GeoHex のコード群 を取得します。 */
-	public Set<String> getSelectedGeoHexCodes() {
+	public Map<String, Point[]> getSelectedGeoHexCodes() {
 		return selectedGeoHexCodes;
 	}
 
@@ -99,7 +101,8 @@ public class GeoHexOverlay extends Overlay {
 		}
 
 		// 選択したものを描画
-		for (String code : getSelectedGeoHexCodes()) {
+		// TODO: 直接 values 使えばいいじゃん
+		for (String code : getSelectedGeoHexCodes().keySet()) {
 			Zone z = GeoHex.getZoneByCode(code);
 			points = getGeoHexZonePoints(z, proj);
 			drawPolyline(canvas, points, selectionPaint);
@@ -119,10 +122,10 @@ public class GeoHexOverlay extends Overlay {
 
 		// 選択 or 選択解除
 		// TODO: レベル上位&下位の選択済み GeoHex の対応
-		if (getSelectedGeoHexCodes().contains(zone.code)) {
+		if (getSelectedGeoHexCodes().keySet().contains(zone.code)) {
 			getSelectedGeoHexCodes().remove(zone.code);
 		} else {
-			getSelectedGeoHexCodes().add(zone.code);
+			getSelectedGeoHexCodes().put(zone.code, getGeoHexZonePoints(zone, mapView.getProjection()));
 		}
 
 		// 再描画
@@ -136,7 +139,7 @@ public class GeoHexOverlay extends Overlay {
 
 	// private methods --------------------------------------------------------
 	/** 指定した GeoHex を構成する画面座標値を得ます。(最後を閉じるので7点の座標値) */
-	private Point[] getGeoHexZonePoints(Zone zone, Projection proj) {
+	public Point[] getGeoHexZonePoints(Zone zone, Projection proj) {
 		Loc[] locs = zone.getHexCoords();
 
 		Point[] points = new Point[locs.length + 1];

@@ -3,12 +3,18 @@ package com.amay077.android.followermap;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.geohex.GeoHex;
+
 import com.amay077.android.followermap.R;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
 
+import android.graphics.Point;
+import android.hardware.GeomagneticField;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -23,6 +29,7 @@ public class MainActivity extends MapActivity {
 
     private MapView mapview = null;
     private MyLocationOverlay myLocOverlay = null;
+    private GeoHexOverlay watchHexOverlay = new GeoHexOverlay();
 
 	/** Called when the activity is first created. */
     @Override
@@ -33,8 +40,8 @@ public class MainActivity extends MapActivity {
         mapview = (MapView)findViewById(R.id.mapView);
         mapview.setBuiltInZoomControls(true);
 
-        mapview.getOverlays().add(new GeoHexOverlay());
-        myLocOverlay = new MyLocationOverlay(this, mapview);
+        mapview.getOverlays().add(watchHexOverlay);
+        myLocOverlay = new MyLocationOverlayEx(this, mapview);
         mapview.getOverlays().add(myLocOverlay);
 }
 
@@ -83,6 +90,9 @@ public class MainActivity extends MapActivity {
     }
 
 	private void startWatchTimer() {
+
+		myLocOverlay.enableMyLocation();
+
 		Timer watchTimer = new Timer();
 
 		watchTimer.schedule(new TimerTask() {
@@ -90,12 +100,28 @@ public class MainActivity extends MapActivity {
 			@Override
 			public void run() {
 
+				// 1. 現在位置を取得
 				GeoPoint point = myLocOverlay.getMyLocation();
-
 				Log.d("startWatchTimer", String.valueOf(point.getLatitudeE6()));
 
+				for (String geoHexCode : watchHexOverlay.getSelectedGeoHexCodes().keySet()) {
+
+					// 監視する GeoHex を取得
+					GeoHex.Zone watchZone = GeoHex.decode(geoHexCode);
+
+					// 監視する GeoHex と同じレベルで、現在位置の GeoHex を取得
+					// ※同じレベルにすることで Code の一致でエリア内判定をする。
+					GeoHex.Zone currentZone = GeoHex.getZoneByLocation(point.getLatitudeE6() / 1E6,
+							point.getLongitudeE6() / 1E6, watchZone.level);
+
+					if (watchZone.code == currentZone.code) {
+						// Notify!
+						// 4. ヒットしたらマナーモードにする
+						Log.d("startWatchTimer", "found! - GeoHex code : " + currentZone.code);
+					}
+				}
 			}
-		}, 0, 5000);
+		}, 0, 5000); // ５秒ごと
 
 	}
 }
