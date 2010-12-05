@@ -13,11 +13,14 @@ import com.google.android.maps.MyLocationOverlay;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 
+import android.content.Intent;
 import android.graphics.Point;
 import android.hardware.GeomagneticField;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +36,7 @@ public class MainActivity extends MapActivity {
     private MapView mapview = null;
     private MyLocationOverlay myLocOverlay = null;
     private GeoHexOverlay watchHexOverlay = new GeoHexOverlay();
+    private String currentWatchArea = "";
 
     private Handler handler = new Handler();
     private AudioManager mAudio = null;
@@ -52,7 +56,22 @@ public class MainActivity extends MapActivity {
         mapview.getOverlays().add(myLocOverlay);
 
         mAudio = (AudioManager) getSystemService(this.AUDIO_SERVICE);
-        mVibrator  = (Vibrator) getSystemService(VIBRATOR_SERVICE);}
+        mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+    }
+
+    private void enabledMyLocation() {
+    	while (true) {
+            try {
+        		myLocOverlay.enableMyLocation();
+                //myLocOverlay.enableCompass();
+        		return;
+    		} catch (Exception e) {
+    			SystemClock.sleep(2000);
+    		}
+    	}
+    }
+
+
 
 	@Override
 	protected boolean isRouteDisplayed() {
@@ -98,10 +117,15 @@ public class MainActivity extends MapActivity {
         return ret;
     }
 
+    private boolean theFirst = true;
+    private boolean sended = false;
+
 	private void startWatchTimer() {
 
-		myLocOverlay.enableMyLocation();
-        myLocOverlay.enableCompass();
+		enabledMyLocation();
+
+
+		theFirst = true;
 
 		Timer watchTimer = new Timer();
 
@@ -109,7 +133,6 @@ public class MainActivity extends MapActivity {
 
 			@Override
 			public void run() {
-
 
 				// 1. 現在位置を取得
 				final GeoPoint point = myLocOverlay.getMyLocation();
@@ -120,12 +143,17 @@ public class MainActivity extends MapActivity {
 					return;
 				}
 
-//				handler.post(new Runnable() {
-//					public void run() {
-//						mapview.getController().animateTo(point);
-//					}
-//				});
+				if (theFirst) {
+					theFirst = false;
+					handler.post(new Runnable() {
+						public void run() {
+							mapview.getController().animateTo(point);
+						}
+					});
+				}
 
+				boolean found = false;
+				boolean isEscape = false;
 				for (String geoHexCode : watchHexOverlay.getSelectedGeoHexCodes().keySet()) {
 
 					// 監視する GeoHex を取得
@@ -137,6 +165,14 @@ public class MainActivity extends MapActivity {
 							point.getLongitudeE6() / 1E6, watchZone.level);
 
 					if (watchZone.code.equals(currentZone.code)) {
+						found = true;
+
+						if (currentWatchArea == currentZone.code) {
+							return;
+						}
+
+						currentWatchArea = currentZone.code;
+
 						// Notify!
 						// 4. ヒットしたらマナーモードにする
 						Log.d("startWatchTimer", "found! - GeoHex code : " + currentZone.code);
@@ -144,15 +180,41 @@ public class MainActivity extends MapActivity {
 						handler.post(new Runnable() {
 
 							public void run() {
-								Toast.makeText(MainActivity.this, "found! - GeoHex code : " + currentZone.code, Toast.LENGTH_SHORT).show();
+//								Toast.makeText(MainActivity.this, "found! - GeoHex code : " + currentZone.code, Toast.LENGTH_SHORT).show();
+								Toast.makeText(MainActivity.this, "通知エリアに入りました！", Toast.LENGTH_SHORT).show();
 								mAudio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
 								mAudio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
 								mVibrator.vibrate(1000);
 
+								if (!sended) {
+									sendMail();
+									sended = true;
+								}
+
 							}
+
+							private void sendMail() {
+								Intent it = new Intent();
+								it.setAction(Intent.ACTION_SENDTO);
+								String to = "my-wife@home.net";
+								it.setData(Uri.parse("mailto:" + to));
+								it.putExtra(Intent.EXTRA_SUBJECT, "今、帰宅中");
+								it.putExtra(Intent.EXTRA_TEXT, "ほげ");
+								startActivity(it);							}
+
 						});
 					}
 				}
+
+//				if (!found && currentWatchArea != "") {
+//					handler.post(new Runnable() {
+//
+//						public void run() {
+//							Toast.makeText(MainActivity.this, "通知エリアを離脱しました！", Toast.LENGTH_SHORT).show();
+//
+//						}
+//					});
+//				}
 			}
 		}, 0, 1000); // 1秒ごと
 

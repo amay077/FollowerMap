@@ -50,12 +50,12 @@ public class GeoHexOverlay extends Overlay {
 	// ctor -------------------------------------------------------------------
 	public GeoHexOverlay() {
 		hexPaint.setStyle(Style.STROKE);
-		hexPaint.setColor(Color.GRAY);
+		hexPaint.setColor(Color.BLACK);
 		hexPaint.setStrokeWidth(1f);
 		hexPaint.setAntiAlias(true);
 
 		selectionPaint.setStyle(Style.FILL);
-		selectionPaint.setColor(Color.argb(64, 255, 0, 0));
+		selectionPaint.setColor(Color.argb(64, 128, 0, 0));
 		selectionPaint.setStrokeWidth(2f);
 		selectionPaint.setAntiAlias(true);
 	}
