@@ -10,37 +10,48 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MyLocationOverlay;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
 
-import android.content.Intent;
-import android.graphics.Point;
-import android.hardware.GeomagneticField;
+import android.content.Context;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
+
+// HexRinger
 public class MainActivity extends MapActivity {
 
     private static final int MENU_ID_START = (Menu.FIRST + 1);
     private static final int MENU_ID_CONFIG = (Menu.FIRST + 2);
 
-
+    // UI components
     private MapView mapview = null;
+    private Button buttonStartMonitoring = null;
+
+    // UI event handler
+
+    /** モニタリング開始ボタンが押されたときの処理 */
+    private View.OnClickListener buttonStartMonitoring_OnClick = new View.OnClickListener() {
+
+		@Override
+		public void onClick(View v) {
+			Const.setAlarmManager(MainActivity.this);
+		}
+	};
+
     private MyLocationOverlay myLocOverlay = null;
     private GeoHexOverlay watchHexOverlay = new GeoHexOverlay();
     private String currentWatchArea = "";
 
     private Handler handler = new Handler();
     private AudioManager mAudio = null;
-	private Vibrator mVibrator = null;
+
 
 	/** Called when the activity is first created. */
     @Override
@@ -48,18 +59,25 @@ public class MainActivity extends MapActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        mapview = (MapView)findViewById(R.id.mapView);
-        mapview.setBuiltInZoomControls(true);
+        initializeUI();
 
         mapview.getOverlays().add(watchHexOverlay);
         myLocOverlay = new MyLocationOverlayEx(this, mapview);
         mapview.getOverlays().add(myLocOverlay);
 
-        mAudio = (AudioManager) getSystemService(this.AUDIO_SERVICE);
-        mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        mAudio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     }
 
-    private void enabledMyLocation() {
+    private void initializeUI() {
+        mapview = (MapView)findViewById(R.id.mapView);
+        mapview.setBuiltInZoomControls(true);
+
+        buttonStartMonitoring = (Button)findViewById(R.id.ButtonStartMonitoring);
+        buttonStartMonitoring.setOnClickListener(buttonStartMonitoring_OnClick);
+
+	}
+
+	private void enabledMyLocation() {
     	while (true) {
             try {
         		myLocOverlay.enableMyLocation();
@@ -78,7 +96,7 @@ public class MainActivity extends MapActivity {
 		return false;
 	}
 
-	   // オプションメニューが最初に呼び出される時に1度だけ呼び出されます
+    // オプションメニューが最初に呼び出される時に1度だけ呼び出されます
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // メニューアイテムを追加します
@@ -124,7 +142,6 @@ public class MainActivity extends MapActivity {
 
 		enabledMyLocation();
 
-
 		theFirst = true;
 
 		Timer watchTimer = new Timer();
@@ -152,8 +169,6 @@ public class MainActivity extends MapActivity {
 					});
 				}
 
-				boolean found = false;
-				boolean isEscape = false;
 				for (String geoHexCode : watchHexOverlay.getSelectedGeoHexCodes().keySet()) {
 
 					// 監視する GeoHex を取得
@@ -165,8 +180,6 @@ public class MainActivity extends MapActivity {
 							point.getLongitudeE6() / 1E6, watchZone.level);
 
 					if (watchZone.code.equals(currentZone.code)) {
-						found = true;
-
 						if (currentWatchArea == currentZone.code) {
 							return;
 						}
@@ -183,38 +196,25 @@ public class MainActivity extends MapActivity {
 //								Toast.makeText(MainActivity.this, "found! - GeoHex code : " + currentZone.code, Toast.LENGTH_SHORT).show();
 								Toast.makeText(MainActivity.this, "通知エリアに入りました！", Toast.LENGTH_SHORT).show();
 								mAudio.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-								mAudio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
-								mVibrator.vibrate(1000);
 
 								if (!sended) {
-									sendMail();
+//									sendMail();
 									sended = true;
 								}
-
 							}
 
-							private void sendMail() {
-								Intent it = new Intent();
-								it.setAction(Intent.ACTION_SENDTO);
-								String to = "my-wife@home.net";
-								it.setData(Uri.parse("mailto:" + to));
-								it.putExtra(Intent.EXTRA_SUBJECT, "今、帰宅中");
-								it.putExtra(Intent.EXTRA_TEXT, "ほげ");
-								startActivity(it);							}
-
+//							private void sendMail() {
+//								Intent it = new Intent();
+//								it.setAction(Intent.ACTION_SENDTO);
+//								String to = "my-wife@home.net";
+//								it.setData(Uri.parse("mailto:" + to));
+//								it.putExtra(Intent.EXTRA_SUBJECT, "今、帰宅中");
+//								it.putExtra(Intent.EXTRA_TEXT, "ほげ");
+//								startActivity(it);
+//							}
 						});
 					}
 				}
-
-//				if (!found && currentWatchArea != "") {
-//					handler.post(new Runnable() {
-//
-//						public void run() {
-//							Toast.makeText(MainActivity.this, "通知エリアを離脱しました！", Toast.LENGTH_SHORT).show();
-//
-//						}
-//					});
-//				}
 			}
 		}, 0, 1000); // 1秒ごと
 

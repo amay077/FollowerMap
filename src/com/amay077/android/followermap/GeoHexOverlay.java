@@ -1,11 +1,8 @@
 package com.amay077.android.followermap;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import net.geohex.GeoHex;
 import net.geohex.GeoHex.Loc;
 import net.geohex.GeoHex.Zone;
@@ -82,7 +79,7 @@ public class GeoHexOverlay extends Overlay {
 		if (mapView.getZoomLevel() <= MIN_ZOOMLEVEL) { return; }
 
 		// GeoHex のレベルは GoogleMap と連動
-		geoHexLevel = mapView.getZoomLevel() - 1;
+		geoHexLevel = mapView.getZoomLevel();
 
 		GeoPoint geoCenter = mapView.getMapCenter();
 		Projection proj = mapView.getProjection();
